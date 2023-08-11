@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.status import HTTP_201_CREATED
 
-from .models import PCModel
+from .models import PCModel, CategoryModel
 from .serializer import PCSerializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -55,3 +55,12 @@ class DeletePCView(APIView):
         all = get_object_or_404(PCModel, id=kwargs["pc_id"])
         all.delete()
         return Response({'msg': 'deleted'})
+
+
+class SearchByCategoryView(APIView):
+    def get(self, *args, **kwargs):
+        category_name = kwargs["category_name"]
+        category = get_object_or_404(CategoryModel, category_name=category_name)
+        pc = get_object_or_404(PCModel, category_id=category.id)
+        serializer = PCSerializers(pc)
+        return Response(serializer.data)

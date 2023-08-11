@@ -6,3 +6,4 @@ class PCSerializers(serializers.ModelSerializer):
     class Meta:
         model = PCModel
         fields = '__all__'
+
