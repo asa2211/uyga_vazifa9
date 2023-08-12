@@ -1,27 +1,21 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
-from rest_framework.status import HTTP_201_CREATED
+from rest_framework.response import Response
 
 from .models import PCModel, CategoryModel
 from .serializer import PCSerializers
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 
 
-class PCAllView(APIView):
-    def get(self, *args, **kwargs):
-        all = PCModel.objects.all()
-        serializer = PCSerializers(all, many=True)
-        return Response(serializer.data)
+class PCAllView(generics.ListAPIView):
+    queryset = PCModel.objects.all()
+    serializer_class = PCSerializers
 
 
-class DetailPCView(APIView):
-    def get(self, *args, **kwargs):
-        pc_id = kwargs['pc_id']
-        pc = get_object_or_404(PCModel, id=pc_id)
-        serializer = PCSerializers(pc)
-        return Response(serializer.data)
+class DetailPCView(generics.RetrieveAPIView):
+    queryset = PCModel.objects.all()
+    serializer_class = PCSerializers
 
 
 class SearchView(generics.ListAPIView):
@@ -31,36 +25,25 @@ class SearchView(generics.ListAPIView):
     filterset_fields = ['id', 'pc_name']
 
 
-class CreatePcView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = PCSerializers(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=HTTP_201_CREATED)
-        return Response(serializer.errors)
+class CreatePcView(generics.CreateAPIView):
+    queryset = PCModel.objects.all()
+    serializer_class = PCSerializers
 
 
-class UpdatePCView(APIView):
-    def patch(self, request, *args, **kwargs):
-        pc = get_object_or_404(PCModel, id=kwargs['pc_id'])
-        serializer = PCSerializers(pc, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=HTTP_201_CREATED)
-        return Response(serializer.errors)
+class UpdatePCView(generics.UpdateAPIView):
+    queryset = PCModel.objects.all()
+    serializer_class = PCSerializers
 
 
-class DeletePCView(APIView):
-    def delete(self, request, *args, **kwargs):
-        all = get_object_or_404(PCModel, id=kwargs["pc_id"])
-        all.delete()
-        return Response({'msg': 'deleted'})
+class DeletePCView(generics.DestroyAPIView):
+    queryset = PCModel.objects.all()
+    serializer_class = PCSerializers
 
 
 class SearchByCategoryView(APIView):
     def get(self, *args, **kwargs):
         category_name = kwargs["category_name"]
         category = get_object_or_404(CategoryModel, category_name=category_name)
-        pc = get_object_or_404(PCModel, category_id=category.id)
-        serializer = PCSerializers(pc)
+        pc = PCModel.objects.filter(category_id=category.id)
+        serializer = PCSerializers(pc, many=True)
         return Response(serializer.data)
